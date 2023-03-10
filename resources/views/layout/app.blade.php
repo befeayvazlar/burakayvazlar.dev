@@ -9,9 +9,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>Burak Ayvazlar - Full Stack Dev.</title>
-    
+
     <meta name="robots" content="noindex, nofollow">
-    
+
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('/img/favicon.ico') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('/img/apple-touch-icon.png') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('/img/favicon-32x32.png') }}">
@@ -30,5 +30,6 @@
     <x-layout.footer></x-layout.footer>
 </div>
 <script src="{{ asset('js/app.js') }}"></script>
+<script src="https://www.google.com/recaptcha/api.js?render={{ env('GOOGLE_RECAPTCHA_KEY') }}"></script>
 </body>
 </html>

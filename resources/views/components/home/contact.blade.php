@@ -51,13 +51,15 @@
       </div>
       <div class="w-full lg:w-1/2 xl:w-5/12 px-4">
         <div class="bg-white dark:bg-slate-900 relative rounded-lg p-8 sm:p-12 shadow-lg">
-          <form action="/contact/submit" method="POST" x-data="
+          <form action="{{route('contact.submit')}}" method="POST" x-data="
           {
               formData: {
                 name: '',
                 phone: '',
                 email: '',
                 message: '',
+                recaptchaToken: '',
+
               },
               errors: {},
               successMessage: '',
@@ -65,7 +67,14 @@
               submitForm(event) {
                 this.successMessage = '';
                 this.errors = {};
-                  fetch(`/contact/submit`, {
+
+                grecaptcha.ready(() => {
+                  grecaptcha.execute('{{ env('GOOGLE_RECAPTCHA_KEY') }}', { action: 'post' }).then((token) => {
+                    this.$refs.recaptchaToken.value = token
+                  })
+                })
+
+                  fetch(`{{ route('contact.submit') }}`, {
                     method: 'POST',
                     headers: {
                       'Content-Type': 'application/json',
@@ -86,6 +95,7 @@
                       phone: '',
                       email: '',
                       message: '',
+                      recaptchaToken: '',
                     };
                     this.successMessage = 'İletişim talebiniz için teşekkürler. Kısa süre içinde size dönüş yapacağım.';
                   })
@@ -126,6 +136,10 @@
               <template x-if="errors.message">
                 <div x-text="errors.message[0]" class="text-xs text-red-500"></div>
               </template>
+              <template x-if="errors.recaptchaToken">
+                <div x-text="errors.recaptchaToken[0]" class="text-xs text-red-500"></div>
+              </template>
+              <input type="hidden" name="recaptchaToken" x-ref="recaptchaToken">
             </div>
             <div>
               <x-button class="w-full">
