@@ -4,7 +4,8 @@
     <div class="flex flex-wrap lg:justify-between -mx-4">
       <div class="w-full lg:w-1/2 xl:w-6/12 px-4">
         <div class="max-w-[570px] mb-12 lg:mb-0">
-          <h2 class="text-dark dark:text-gray-100 mb-6 uppercase font-bold text-[32px] sm:text-[40px] lg:text-[36px] xl:text-[40px]">
+          <h2
+            class="text-dark dark:text-gray-100 mb-6 uppercase font-bold text-[32px] sm:text-[40px] lg:text-[36px] xl:text-[40px]">
             İletişim
           </h2>
           <p class="text-base text-body-color dark:text-gray-200 leading-relaxed mb-9">
@@ -58,8 +59,6 @@
                 phone: '',
                 email: '',
                 message: '',
-                recaptchaToken: '',
-
               },
               errors: {},
               successMessage: '',
@@ -69,43 +68,48 @@
                 this.errors = {};
 
                 grecaptcha.ready(() => {
-                  grecaptcha.execute('{{ env('GOOGLE_RECAPTCHA_KEY') }}', { action: 'post' }).then((token) => {
-                    this.$refs.recaptchaToken.value = token
-                  })
+                      grecaptcha.execute('{{ env('GOOGLE_RECAPTCHA_KEY') }}', { action: 'post' }).then((token) => {
+                        this.$refs.recaptchaToken.value = token
+                        this.formData.recaptchaToken = token
+{{--                        console.log(this.formData.recaptchaToken)--}}
+
+                        fetch(`{{ route('contact.submit') }}`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector(`meta[name='csrf-token']`).getAttribute('content')
+                          },
+                          body: JSON.stringify(this.formData)
+                        })
+                        .then(response => {
+                          if (response.status === 200) {
+                            return response.json();
+                          }
+                          throw response;
+                        })
+                        .then(result => {
+                          this.formData = {
+                            name: '',
+                            phone: '',
+                            email: '',
+                            message: '',
+                          };
+                          this.successMessage = 'İletişim talebiniz için teşekkürler. Kısa süre içinde size dönüş yapacağım.';
+                        })
+                        .catch(async(response) => {
+                          const res = await response.json();
+                          if (response.status === 422) {
+                            this.errors = res.errors;
+                          }
+                          console.log(res);
+
+                        })
+
+                      })
                 })
 
-                  fetch(`{{ route('contact.submit') }}`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'X-Requested-With': 'XMLHttpRequest',
-                      'X-CSRF-TOKEN': document.querySelector(`meta[name='csrf-token']`).getAttribute('content')
-                    },
-                    body: JSON.stringify(this.formData)
-                  })
-                  .then(response => {
-                    if (response.status === 200) {
-                      return response.json();
-                    }
-                    throw response;
-                  })
-                  .then(result => {
-                    this.formData = {
-                      name: '',
-                      phone: '',
-                      email: '',
-                      message: '',
-                      recaptchaToken: '',
-                    };
-                    this.successMessage = 'İletişim talebiniz için teşekkürler. Kısa süre içinde size dönüş yapacağım.';
-                  })
-                  .catch(async(response) => {
-                    const res = await response.json();
-                    if (response.status === 422) {
-                      this.errors = res.errors;
-                    }
-                    console.log(res);
-                  })
+
               }
           }
           " x-on:submit.prevent="submitForm">
@@ -114,35 +118,41 @@
             </template>
             @csrf
             <div class="mb-6">
-              <x-forms.input placeholder="Ad Soyad" name="name" x-model="formData.name" ::class="errors.name ? 'border-red-500 focus:border-red-500' : ''"></x-forms.input>
+              <x-forms.input placeholder="Ad Soyad" name="name" x-model="formData.name"
+                             ::class="errors.name ? 'border-red-500 focus:border-red-500' : ''"></x-forms.input>
               <template x-if="errors.name">
                 <div x-text="errors.name[0]" class="text-xs text-red-500"></div>
               </template>
             </div>
             <div class="mb-6">
-              <x-forms.input placeholder="Telefon" name="phone" x-model="formData.phone" ::class="errors.phone ? 'border-red-500 focus:border-red-500' : ''"></x-forms.input>
+              <x-forms.input placeholder="Telefon" name="phone" x-model="formData.phone"
+                             ::class="errors.phone ? 'border-red-500 focus:border-red-500' : ''"></x-forms.input>
               <template x-if="errors.phone">
                 <div x-text="errors.phone[0]" class="text-xs text-red-500"></div>
               </template>
             </div>
             <div class="mb-6">
-              <x-forms.input type="email" placeholder="Email Adresi" name="email" x-model="formData.email" ::class="errors.email ? 'border-red-500 focus:border-red-500' : ''"></x-forms.input>
+              <x-forms.input type="email" placeholder="Email Adresi" name="email" x-model="formData.email"
+                             ::class="errors.email ? 'border-red-500 focus:border-red-500' : ''"></x-forms.input>
               <template x-if="errors.email">
                 <div x-text="errors.email[0]" class="text-xs text-red-500"></div>
               </template>
             </div>
             <div class="mb-6">
-              <x-forms.textarea placeholder="Mesajınız" name="message" rows="6" x-model="formData.message" ::class="errors.message ? 'border-red-500 focus:border-red-500' : ''"></x-forms.textarea>
+              <x-forms.textarea placeholder="Mesajınız" name="message" rows="6" x-model="formData.message"
+                                ::class="errors.message ? 'border-red-500 focus:border-red-500' : ''"></x-forms.textarea>
               <template x-if="errors.message">
                 <div x-text="errors.message[0]" class="text-xs text-red-500"></div>
               </template>
               <template x-if="errors.recaptchaToken">
-                <div x-text="errors.recaptchaToken[0]" class="text-xs text-red-500"></div>
+                <div x-text="errors.recaptchaToken[0]"
+                     class="text-xs rounded py-4 px-6 border border-red-700 bg-red-700 text-white mt-4"></div>
               </template>
-              <input type="hidden" name="recaptchaToken" x-ref="recaptchaToken">
+              <x-forms.input type="hidden" name="recaptchaToken" x-model="formData.recaptchaToken"
+                             x-ref="recaptchaToken"></x-forms.input>
             </div>
             <div>
-              <x-button class="w-full">
+              <x-button type="submit" class="w-full">
                 Mesaj Gönder
               </x-button>
             </div>

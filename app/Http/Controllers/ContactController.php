@@ -11,12 +11,14 @@ class ContactController extends Controller
 {
     public function submit(Request $request)
     {
+        //dd($request->recaptchaToken);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255|regex:/^[a-zA-ZğüşöçıİĞÜÖÇ]+(?:\s[a-zA-ZğüşöçıĞÜŞÖÇ]+)+$/',
             'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:10',
             'email' => 'required|email',
             'message' => 'required',
-            'recaptchaToken' => ['required', new ReCaptcha(0.7)]
+            'recaptchaToken' => ['required', new ReCaptcha($request->recaptchaToken)]
         ],  ['name.required' => 'Lütfen adınızı soyadınızı giriniz.',
             'phone.required' => 'Lütfen geçerli bir telefon numarası giriniz.',
             'email.required' => 'Lütfen geçerli bir mail adresi giriniz.',

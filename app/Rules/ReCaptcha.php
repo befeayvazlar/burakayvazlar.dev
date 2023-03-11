@@ -8,16 +8,6 @@ use Illuminate\Support\Facades\Http;
 class ReCaptcha implements Rule
 {
     /**
-     * Create a new rule instance.
-     *
-     * @return void
-     */
-    public function __construct(protected $threshold = 0.7)
-    {
-        //
-    }
-
-    /**
      * Determine if the validation rule passes.
      *
      * @param  string  $attribute
@@ -29,16 +19,22 @@ class ReCaptcha implements Rule
         $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
             'secret'    => env('GOOGLE_RECAPTCHA_SECRET'),
             'response'  => $value
-        ])->json();
+        ]);
 
-        if (!$response['success']){
-            return false;
-        }
-        if (!$response['score'] < $this->threshold){
-            return false;
+        if ($response->successful() && $response->json('success') && $response->json('score') > 0.5) {
+            return true;
         }
 
-        return true;
+        return false;
+
+        /*if (!$response['success']){
+            return false;
+        }
+        if ($response['score'] < $this->threshold){
+            return false;
+        }*/
+
+        //return true;
     }
 
     /**
@@ -48,6 +44,6 @@ class ReCaptcha implements Rule
      */
     public function message()
     {
-        return 'The Google Recaptcha is required.';
+        return 'ReCaptcha doğrulanamadı! Tekrar deneyiniz...';
     }
 }
